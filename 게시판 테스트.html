@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이용자 후기 게시판</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .review-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .review-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .review-form input[type="text"],
+        .review-form textarea,
+        .review-form select {
+            width: calc(100% - 12px);
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        .review-form button {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .review-list {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        .review-item {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        .review-item h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .review-item p {
+            margin: 0;
+        }
+        .no-reviews {
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>이용자 후기</h1>
+
+        <div class="review-form">
+            <h2>후기 작성</h2>
+            <form id="reviewForm">
+                <label for="shelterName">쉼터명:</label>
+                <input type="text" id="shelterName" name="shelterName" required>
+
+                <label for="nickname">닉네임:</label>
+                <input type="text" id="nickname" name="nickname" required>
+
+                <label for="rating">평점:</label>
+                <select id="rating" name="rating">
+                    <option value="5">★★★★★</option>
+                    <option value="4">★★★★☆</option>
+                    <option value="3">★★★☆☆</option>
+                    <option value="2">★★☆☆☆</option>
+                    <option value="1">★☆☆☆☆</option>
+                </select>
+
+                <label for="comment">후기 내용:</label>
+                <textarea id="comment" name="comment" rows="5" required></textarea>
+
+                <button type="submit">등록</button>
+            </form>
+        </div>
+
+        <div class="review-list">
+            <h2>작성된 후기</h2>
+            <div id="reviews">
+                <p class="no-reviews">아직 작성된 후기가 없습니다.</p>
+                </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const reviewForm = document.getElementById('reviewForm');
+            const reviewsContainer = document.getElementById('reviews');
+            const storageKey = 'userReviews';
+
+            // 로컬 스토리지에서 후기 불러오기
+            function loadReviews() {
+                const storedReviews = localStorage.getItem(storageKey);
+                if (storedReviews) {
+                    const reviews = JSON.parse(storedReviews);
+                    if (reviews.length > 0) {
+                        reviewsContainer.innerHTML = ''; // 기존 "아직 작성된 후기가 없습니다." 메시지 제거
+                        reviews.forEach(review => {
+                            const reviewItem = document.createElement('div');
+                            reviewItem.classList.add('review-item');
+                            reviewItem.innerHTML = `
+                                <h4>${review.shelterName} - ${review.nickname} (평점: ${review.rating})</h4>
+                                <p>${review.comment}</p>
+                            `;
+                            reviewsContainer.appendChild(reviewItem);
+                        });
+                    }
+                }
+            }
+
+            // 후기를 로컬 스토리지에 저장하기
+            function saveReview(review) {
+                const storedReviews = localStorage.getItem(storageKey);
+                let reviews = storedReviews ? JSON.parse(storedReviews) : [];
+                reviews.unshift(review); // 새 후기를 배열 맨 앞에 추가
+                localStorage.setItem(storageKey, JSON.stringify(reviews));
+                loadReviews(); // 후기 목록 업데이트
+            }
+
+            // 초기 로딩 시 저장된 후기 불러오기
+            loadReviews();
+
+            reviewForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const shelterName = document.getElementById('shelterName').value;
+                const nickname = document.getElementById('nickname').value;
+                const rating = document.getElementById('rating').value;
+                const comment = document.getElementById('comment').value;
+
+                if (shelterName && nickname && comment) {
+                    const newReview = {
+                        shelterName: shelterName,
+                        nickname: nickname,
+                        rating: rating,
+                        comment: comment
+                    };
+
+                    saveReview(newReview);
+
+                    // 입력 필드 초기화
+                    document.getElementById('shelterName').value = '';
+                    document.getElementById('nickname').value = '';
+                    document.getElementById('comment').value = '';
+                } else {
+                    alert('쉼터명, 닉네임, 후기 내용을 모두 입력해주세요.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
